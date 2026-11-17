@@ -1,0 +1,704 @@
+{
+  "schema_version": 1,
+  "name": "solo-0033-media-workbench",
+  "project_name": "solo-0033-media-workbench",
+  "project_shape": "backend",
+  "modules": [
+    {
+      "id": "assets",
+      "path": "mediaworkbench/assets.py",
+      "responsibility": "媒体探测与内容指纹"
+    },
+    {
+      "id": "db",
+      "path": "mediaworkbench/db.py",
+      "responsibility": "SQLite兼容表结构和短写事务"
+    },
+    {
+      "id": "timeline",
+      "path": "mediaworkbench/timeline.py",
+      "responsibility": "有序编辑、乐观修订与短读快照"
+    },
+    {
+      "id": "planner",
+      "path": "mediaworkbench/planner.py",
+      "responsibility": "不可变逐次剪辑计划和缓存身份"
+    },
+    {
+      "id": "encoder",
+      "path": "mediaworkbench/encoder.py",
+      "responsibility": "逐段归一化和有序拼接"
+    },
+    {
+      "id": "jobs",
+      "path": "mediaworkbench/jobs.py",
+      "responsibility": "持久化租约、代次和检查点状态机"
+    },
+    {
+      "id": "segment_cache",
+      "path": "mediaworkbench/segment_cache.py",
+      "responsibility": "跨进程互斥、片段字节及校验清单"
+    },
+    {
+      "id": "worker",
+      "path": "mediaworkbench/worker.py",
+      "responsibility": "中断恢复、租约续期和分段执行"
+    },
+    {
+      "id": "publication",
+      "path": "mediaworkbench/publication.py",
+      "responsibility": "文件归属与数据库完成状态协调"
+    },
+    {
+      "id": "renders",
+      "path": "mediaworkbench/renders.py",
+      "responsibility": "同步与持久化导出公共服务"
+    },
+    {
+      "id": "server",
+      "path": "mediaworkbench/server.py",
+      "responsibility": "JSON HTTP接口和连接寿命"
+    },
+    {
+      "id": "tools",
+      "path": "mediaworkbench/tools.py",
+      "responsibility": "有界子进程及取消检查"
+    },
+    {
+      "id": "audio_signal",
+      "path": "mediaworkbench/audio_signal.py",
+      "responsibility": "逐次裁切音频解码与增益后双声道活动检测"
+    },
+    {
+      "id": "audio_layers",
+      "path": "mediaworkbench/audio_layers.py",
+      "responsibility": "有修订的配音实例与一致混音快照"
+    },
+    {
+      "id": "ducking",
+      "path": "mediaworkbench/ducking.py",
+      "responsibility": "重叠配音攻击释放曲线的下包络及交点"
+    },
+    {
+      "id": "mix_plan",
+      "path": "mediaworkbench/mix_plan.py",
+      "responsibility": "冻结活动区间和试听曲线并校验持久化摘要"
+    },
+    {
+      "id": "mix_render",
+      "path": "mediaworkbench/mix_render.py",
+      "responsibility": "磁盘暂存、定长块混音和整节目统一峰值补偿"
+    },
+    {
+      "id": "media_sources",
+      "path": "mediaworkbench/media_sources.py",
+      "responsibility": "不可变素材身份与原片/代理位置分离、用途选择"
+    },
+    {
+      "id": "proxies",
+      "path": "mediaworkbench/proxies.py",
+      "responsibility": "非阻塞代理准备、请求代次发布与离线预览"
+    },
+    {
+      "id": "relinking",
+      "path": "mediaworkbench/relinking.py",
+      "responsibility": "批量原片内容核验与短事务修订回连"
+    },
+    {
+      "id": "transition_plan",
+      "path": "mediaworkbench/transition_plan.py",
+      "responsibility": "毫秒精度重叠排布、单次末尾量化与不可变方案"
+    },
+    {
+      "id": "transition_signal",
+      "path": "mediaworkbench/transition_signal.py",
+      "responsibility": "多路覆盖归一化、线性光像素和逐采样声音"
+    },
+    {
+      "id": "transition_render",
+      "path": "mediaworkbench/transition_render.py",
+      "responsibility": "一次物化和有界逐帧合成及受保护发布"
+    },
+    {
+      "id": "proxy_store",
+      "path": "mediaworkbench/proxy_store.py",
+      "responsibility": "代理文件持久清单、逐版本进程读保护和按预算显式回收"
+    },
+    {
+      "id": "retime_plan",
+      "path": "mediaworkbench/retime_plan.py",
+      "responsibility": "源位置速度积分、往返逆映射与冻结持久方案"
+    },
+    {
+      "id": "retime_signal",
+      "path": "mediaworkbench/retime_signal.py",
+      "responsibility": "按连续源坐标采样双声道与增益"
+    },
+    {
+      "id": "retime_render",
+      "path": "mediaworkbench/retime_render.py",
+      "responsibility": "逐次音视频流单次物化、复用存储与输出采样"
+    },
+    {
+      "id": "collab_spans",
+      "path": "mediaworkbench/collab_spans.py",
+      "responsibility": "源区间拆分、稳定谱系选择与间隙定位"
+    },
+    {
+      "id": "collab_merge",
+      "path": "mediaworkbench/collab_merge.py",
+      "responsibility": "旧视图编辑变换、选择性逆操作和冲突合并"
+    },
+    {
+      "id": "collab_store",
+      "path": "mediaworkbench/collab_store.py",
+      "responsibility": "短事务提交、持久序列树和原始幂等回执"
+    },
+    {
+      "id": "sync_clock",
+      "path": "mediaworkbench/sync_clock.py",
+      "responsibility": "单调分段校准与节目到源样本时钟映射"
+    },
+    {
+      "id": "multicam_plan",
+      "path": "mediaworkbench/multicam_plan.py",
+      "responsibility": "覆盖约束、最短镜头和切换预算下整段全局选镜"
+    },
+    {
+      "id": "multicam_render",
+      "path": "mediaworkbench/multicam_render.py",
+      "responsibility": "独立源时钟逐帧定位、连续主声音和有界成片"
+    },
+    {
+      "id": "spatial_plan",
+      "path": "mediaworkbench/spatial_plan.py",
+      "responsibility": "一阶声场冻结姿态和球面最短路径"
+    },
+    {
+      "id": "spatial_signal",
+      "path": "mediaworkbench/spatial_signal.py",
+      "responsibility": "通道约定转换与听者坐标逆旋转"
+    },
+    {
+      "id": "spatial_render",
+      "path": "mediaworkbench/spatial_render.py",
+      "responsibility": "单次四声道解码与全局采样时钟流式交付"
+    },
+    {
+      "id": "caption_words",
+      "path": "mediaworkbench/caption_words.py",
+      "responsibility": "原片逐词字幕的修订与剪入实例时间投影"
+    },
+    {
+      "id": "caption_layout",
+      "path": "mediaworkbench/caption_layout.py",
+      "responsibility": "两行设备容量下的整节目字幕阅读速率最优分段"
+    },
+    {
+      "id": "caption_plan",
+      "path": "mediaworkbench/caption_plan.py",
+      "responsibility": "字幕冻结、逐时预览和WebVTT一致交付"
+    },
+    {
+      "id": "denoise_plan",
+      "path": "mediaworkbench/denoise_plan.py",
+      "responsibility": "底噪功率采样、不可变降噪方案及版本校验"
+    },
+    {
+      "id": "denoise_signal",
+      "path": "mediaworkbench/denoise_signal.py",
+      "responsibility": "双声道联动短时频谱抑制、因果平滑和归一化重叠相加"
+    },
+    {
+      "id": "denoise_render",
+      "path": "mediaworkbench/denoise_render.py",
+      "responsibility": "原片单次解码、有界临时存储及精确片段试听交付"
+    },
+    {
+      "id": "room_plan",
+      "path": "mediaworkbench/room_plan.py",
+      "responsibility": "冻结四路测量响应与节目"
+    },
+    {
+      "id": "room_signal",
+      "path": "mediaworkbench/room_signal.py",
+      "responsibility": "输入时间域房间变换与分区矩阵卷积"
+    },
+    {
+      "id": "room_render",
+      "path": "mediaworkbench/room_render.py",
+      "responsibility": "有界单次解码和精确含尾音试听交付"
+    },
+    {
+      "id": "music_select",
+      "path": "mediaworkbench/music_select.py",
+      "responsibility": "时长精确且段落使用有界的全局音乐路径"
+    },
+    {
+      "id": "music_plan",
+      "path": "mediaworkbench/music_plan.py",
+      "responsibility": "源位置段落校对、修订与冻结编配"
+    },
+    {
+      "id": "music_render",
+      "path": "mediaworkbench/music_render.py",
+      "responsibility": "单次原片解码与逐采样等功率段落衔接"
+    },
+    {
+      "id": "master_plan",
+      "path": "mediaworkbench/master_plan.py",
+      "responsibility": "冻结整段混音和广播响度交付约定"
+    },
+    {
+      "id": "master_signal",
+      "path": "mediaworkbench/master_signal.py",
+      "responsibility": "门控广播响度测量与联动真实峰值增益轨迹"
+    },
+    {
+      "id": "master_render",
+      "path": "mediaworkbench/master_render.py",
+      "responsibility": "单次原片解码、整段校准及逐采样母带试听"
+    },
+    {
+      "id": "color_plan",
+      "path": "mediaworkbench/color_plan.py",
+      "responsibility": "冻结逐次剪入颜色解释和显示条件"
+    },
+    {
+      "id": "color_signal",
+      "path": "mediaworkbench/color_signal.py",
+      "responsibility": "绝对亮度转换、镜头曝光和保色相色域压缩"
+    },
+    {
+      "id": "color_render",
+      "path": "mediaworkbench/color_render.py",
+      "responsibility": "单次解码和同版中段无损颜色交付"
+    },
+    {
+      "id": "stretch_plan",
+      "path": "mediaworkbench/stretch_plan.py",
+      "responsibility": "冻结逐次对白源与画面对齐关系"
+    },
+    {
+      "id": "stretch_signal",
+      "path": "mediaworkbench/stretch_signal.py",
+      "responsibility": "双声道联合波形对齐、瞬态保护和有界保音高伸缩"
+    },
+    {
+      "id": "stretch_render",
+      "path": "mediaworkbench/stretch_render.py",
+      "responsibility": "单次原片解码、完整历史试听与受保护交付"
+    },
+    {
+      "id": "resample_plan",
+      "path": "mediaworkbench/resample_plan.py",
+      "responsibility": "目标采样率方案与全局边界冻结"
+    },
+    {
+      "id": "resample_signal",
+      "path": "mediaworkbench/resample_signal.py",
+      "responsibility": "有理时钟带限重建与有限内存"
+    },
+    {
+      "id": "resample_render",
+      "path": "mediaworkbench/resample_render.py",
+      "responsibility": "原生采样解码、精确试听和受保护发布"
+    },
+    {
+      "id": "repair_plan",
+      "path": "mediaworkbench/repair_plan.py",
+      "responsibility": "原片缺损修订与逐次剪入冻结"
+    },
+    {
+      "id": "repair_signal",
+      "path": "mediaworkbench/repair_signal.py",
+      "responsibility": "可信边界下联合声道波形估计"
+    },
+    {
+      "id": "repair_render",
+      "path": "mediaworkbench/repair_render.py",
+      "responsibility": "原片修复先于裁切及精确试听发布"
+    },
+    {
+      "id": "stitch_geometry",
+      "path": "mediaworkbench/stitch_geometry.py",
+      "responsibility": "原生像素透视标定、异常点共识与逆映射"
+    },
+    {
+      "id": "stitch_signal",
+      "path": "mediaworkbench/stitch_signal.py",
+      "responsibility": "线性光双线性采样与边缘羽化"
+    },
+    {
+      "id": "stitch_plan",
+      "path": "mediaworkbench/stitch_plan.py",
+      "responsibility": "冻结双机位素材、标定、入点和画布"
+    },
+    {
+      "id": "stitch_render",
+      "path": "mediaworkbench/stitch_render.py",
+      "responsibility": "有界临时解码与逐帧无损交付"
+    },
+    {
+      "id": "sphere_geometry",
+      "path": "mediaworkbench/sphere_geometry.py",
+      "responsibility": "球面朝向插值与普通相机射线逆投影"
+    },
+    {
+      "id": "sphere_signal",
+      "path": "mediaworkbench/sphere_signal.py",
+      "responsibility": "跨经线与极点的线性光球面采样"
+    },
+    {
+      "id": "sphere_plan",
+      "path": "mediaworkbench/sphere_plan.py",
+      "responsibility": "冻结全景原片剪入和视角轨迹"
+    },
+    {
+      "id": "sphere_render",
+      "path": "mediaworkbench/sphere_render.py",
+      "responsibility": "原片单次解码及有界逐帧视角交付"
+    },
+    {
+      "id": "rolling_geometry",
+      "path": "mediaworkbench/rolling_geometry.py",
+      "responsibility": "本体角速度的SO(3)时序积分与原片行曝光隐式逆投影"
+    },
+    {
+      "id": "rolling_plan",
+      "path": "mediaworkbench/rolling_plan.py",
+      "responsibility": "全片覆盖预检与不可变卷帘校正版本"
+    },
+    {
+      "id": "rolling_render",
+      "path": "mediaworkbench/rolling_render.py",
+      "responsibility": "线性光校正采样与有界无损交付"
+    }
+  ],
+  "workflows": [
+    {
+      "id": "timeline-edit",
+      "name": "素材登记与原子时间线编辑",
+      "entry": "POST /projects/{id}/timeline",
+      "steps": [
+        "探测素材并保存哈希",
+        "校验逐次裁切及预期修订",
+        "短事务原子替换和读取新修订"
+      ],
+      "success": "返回新修订的完整有序时间线",
+      "failure": "非法片段或陈旧修订整批拒绝",
+      "verification": "python3 -m mediaworkbench.check --workflow timeline",
+      "module_ids": [
+        "server",
+        "assets",
+        "tools",
+        "timeline",
+        "db"
+      ]
+    },
+    {
+      "id": "media-render",
+      "name": "冻结并导出规范化成片",
+      "entry": "POST /renders",
+      "steps": [
+        "冻结一致时间线并校验素材",
+        "逐次规划及校验或编码片段",
+        "有序拼接并保护目标文件发布"
+      ],
+      "success": "返回完成MP4及冻结修订",
+      "failure": "记录失败，保留可核对的已发布产物意图，不删除公共目标路径",
+      "verification": "python3 -m mediaworkbench.check --workflow render",
+      "module_ids": [
+        "server",
+        "renders",
+        "timeline",
+        "planner",
+        "jobs",
+        "worker",
+        "segment_cache",
+        "encoder",
+        "publication",
+        "db",
+        "tools"
+      ]
+    },
+    {
+      "id": "resumable-render",
+      "name": "持久化分段任务接管和取消",
+      "entry": "POST /render-jobs/{id}/run",
+      "steps": [
+        "接管排队或租约过期任务并增加代次",
+        "续期并复验检查点及损坏缓存",
+        "记录组装产物意图并发布或取消"
+      ],
+      "success": "原冻结计划恢复并完成，旧工作进程被隔离",
+      "failure": "租约丢失停止子进程；取消终止任务；其他失败可显式重试",
+      "verification": "python3 -m mediaworkbench.check --workflow recovery",
+      "module_ids": [
+        "server",
+        "renders",
+        "jobs",
+        "worker",
+        "planner",
+        "segment_cache",
+        "encoder",
+        "publication",
+        "db",
+        "tools"
+      ]
+    },
+    {
+      "id": "voice-ducking",
+      "name": "配音避让试听与有界内存整节目混音",
+      "entry": "POST /mix-plans; POST /mix-plans/{id}/render",
+      "steps": [
+        "以编辑修订冻结背景和配音实例",
+        "逐次裁切分析实际可听活动并生成连续避让曲线",
+        "保存不可变方案",
+        "每实例解码一次并在临时磁盘保存PCM",
+        "定长块扫描整节目峰值后统一补偿导出WAV"
+      ],
+      "success": "背景仅在可听配音处平顺避让，重叠不重复压低，整节目保持相对响度并在192MiB环境导出",
+      "failure": "变动源文件、越界配音和目标冲突拒绝；失败释放暂存文件",
+      "verification": "python3 -m mediaworkbench.check --workflow mix",
+      "module_ids": [
+        "server",
+        "db",
+        "assets",
+        "timeline",
+        "audio_layers",
+        "audio_signal",
+        "ducking",
+        "mix_plan",
+        "mix_render"
+      ]
+    },
+    {
+      "id": "offline-relink",
+      "name": "离线代理预览与原片批量回连",
+      "entry": "POST /assets/{id}/proxy; POST /asset-relinks; POST /projects/{id}/preview",
+      "steps": [
+        "保留可用代理并分配新请求代次",
+        "在事务外准备及校验不可变代理文件",
+        "将当前代次代理发布供离线预览",
+        "批量校验原片身份并按位置修订原子回连",
+        "已冻结任务按原身份解析新的原片位置"
+      ],
+      "success": "原片离线仍可预览，交付只用相同内容的原片；旧请求不覆盖新代理或已接受回连",
+      "failure": "错误原片、陈旧回连整批拒绝；失败刷新保留旧代理；准备失败清理私有文件",
+      "verification": "python3 -m mediaworkbench.check --workflow sources",
+      "module_ids": [
+        "media_sources",
+        "proxies",
+        "relinking",
+        "assets",
+        "db",
+        "timeline",
+        "planner",
+        "jobs",
+        "worker",
+        "server"
+      ]
+    },
+    {
+      "id": "overlap-transitions",
+      "name": "多路重叠转场音画一致合成",
+      "entry": "POST /transition-plans; POST /transition-plans/{id}/render",
+      "steps": [
+        "冻结裁切、增益和邻接重叠",
+        "建立单一采样时钟并只对末尾视频量化",
+        "解码每个镜头实例到私有磁盘",
+        "按多路同时覆盖合成线性光画面和原增益声音",
+        "逐帧及块写出并保护发布目标"
+      ],
+      "success": "短中间镜头的三路转场保留正确亮度和声音，短镜头序列不累计帧量化漂移且内存固定",
+      "failure": "非法重叠不保存、变动原片拒绝、失败清理临时数据、旧方案不随新编辑变化",
+      "verification": "python3 -m mediaworkbench.check --workflow transitions",
+      "module_ids": [
+        "transition_plan",
+        "transition_signal",
+        "transition_render",
+        "media_sources",
+        "timeline",
+        "planner",
+        "db",
+        "server"
+      ]
+    },
+    {
+      "id": "proxy-retention",
+      "name": "离线代理刷新与有界回收",
+      "entry": "POST /proxy-store/collect",
+      "steps": [
+        "刷新时保留新旧版本的持久字节清单",
+        "预览选定不可变版本并持有进程读保护",
+        "按预算跳过当前及在用版本回收退役字节"
+      ],
+      "success": "离线预览与刷新、编辑和清理并行；退出后旧代理可回收",
+      "failure": "替换路径及非托管文件保持不动；预算受保护文件阻挡时明确报告",
+      "verification": "独立宿主机进程交错和真实音视频输出探针",
+      "module_ids": [
+        "proxy_store",
+        "media_sources",
+        "proxies",
+        "db",
+        "server"
+      ]
+    },
+    {
+      "id": "source-speed-ramp",
+      "name": "源位置速度曲线的变速音画导出",
+      "entry": "POST /retime-plans",
+      "steps": [
+        "在源片裁切内冻结速度点",
+        "积分得到跨剪辑连续节目时间",
+        "按逆时间映射输出画面及连续声音"
+      ],
+      "success": "重复剪入拥有独立速度、裁切和音量，保存方案跨重开与编辑保持一致",
+      "failure": "非法曲线无落盘、变动原片拒绝且目标保留",
+      "verification": "独立源时间映射、样本和真实媒体输出探针",
+      "module_ids": [
+        "retime_plan",
+        "retime_signal",
+        "retime_render",
+        "transition_render",
+        "media_sources",
+        "db",
+        "server"
+      ]
+    },
+    {
+      "id": "collaborative-edit",
+      "name": "多人错时编辑与选择性撤销",
+      "entry": "POST /projects/{id}/edits",
+      "steps": [
+        "按旧修订解析所选剪入源区间",
+        "将意图重放到当前序列并检测依赖冲突",
+        "原子保存版本树、逆操作和幂等回执"
+      ],
+      "success": "无冲突合并保留双方意图，回执重放稳定且历史容量有界",
+      "failure": "真正内容冲突整批拒绝，不能撤销他人编辑",
+      "module_ids": [
+        "collab_spans",
+        "collab_merge",
+        "collab_store",
+        "timeline",
+        "db",
+        "server"
+      ]
+    },
+    {
+      "id": "caption-delivery",
+      "name": "原片逐词字幕到离线节目字幕交付",
+      "entry": "POST /assets/{id}/transcript; POST /caption-plans",
+      "steps": [
+        "原子修订原片逐词字幕",
+        "捕获时间线和字幕快照并逐次映射",
+        "在设备宽度和条数限制下全局优化阅读速率",
+        "冻结预览并原子交付WebVTT"
+      ],
+      "success": "重复剪入和裁切保持逐词时间关系，完整节目在条数上限内使最坏阅读速率最小，预览与交付跨重开一致",
+      "failure": "陈旧字幕更新、无可行完整排版、损坏方案和目标冲突明确拒绝",
+      "module_ids": [
+        "caption_words",
+        "caption_layout",
+        "caption_plan",
+        "timeline",
+        "db",
+        "server"
+      ]
+    },
+    {
+      "id": "music-conform",
+      "name": "定长音乐编配交付",
+      "entry": "POST /music-plans",
+      "steps": [
+        "修订原片音乐段落及有向衔接",
+        "按精确时长与使用次数求整段最优路径",
+        "冻结并以单次解码交付或试听"
+      ],
+      "success": "整段最佳合法编配及同版逐采样试听",
+      "failure": "无完整路径不落盘，源变化和目标冲突拒绝",
+      "module_ids": [
+        "music_plan",
+        "music_select",
+        "music_render",
+        "db",
+        "server"
+      ]
+    },
+    {
+      "id": "broadcast-master",
+      "name": "广播响度母带交付",
+      "entry": "POST /master-plans",
+      "steps": [
+        "冻结混音",
+        "测量门控整段响度",
+        "校准真实峰值联动轨迹",
+        "整段或精确中段交付"
+      ],
+      "success": "整段响度和重建峰值合格且试听一致",
+      "failure": "不可达响度和源变化拒绝；失败不发布",
+      "module_ids": [
+        "master_plan",
+        "master_signal",
+        "master_render"
+      ]
+    },
+    {
+      "id": "hdr-sdr-color",
+      "name": "宽色域HDR到SDR颜色交付",
+      "entry": "POST /color-plans",
+      "steps": [
+        "冻结每次剪入及原片颜色解释",
+        "全镜头对数亮度统计",
+        "亮度映射和保色相色域压缩",
+        "单次解码逐帧交付"
+      ],
+      "success": "高光有层次、主体曝光稳定、同版预览一致",
+      "failure": "源变化和目标冲突拒绝",
+      "verification": "独立绝对光、颜色、真实帧和内存探针",
+      "module_ids": [
+        "color_plan",
+        "color_signal",
+        "color_render",
+        "media_sources"
+      ]
+    }
+  ],
+  "complexity": {
+    "mechanisms": [
+      "optimistic_revision",
+      "concurrency",
+      "immutable_plan",
+      "content_addressed_media",
+      "checkpoint_revalidation",
+      "lease_fencing",
+      "resource_lifecycle",
+      "error_propagation",
+      "recoverable_publication",
+      "waveform_activity",
+      "piecewise_lower_envelope",
+      "bounded_pcm_streaming",
+      "global_peak_compensation",
+      "immutable_mix_plan",
+      "logical_asset_relocation",
+      "rendition_trust_separation",
+      "generation_publication",
+      "optimistic_batch_relink",
+      "simultaneous_transition_coverage",
+      "linear_light_compositing",
+      "exact_av_clock",
+      "bounded_frame_compositing",
+      "occurrence_local_word_projection",
+      "bottleneck_caption_segmentation",
+      "unicode_display_cells",
+      "immutable_caption_delivery",
+      "stationary_noise_power_estimation",
+      "stereo_linked_spectral_mask",
+      "causal_gain_release",
+      "normalized_overlap_add",
+      "stateful_exact_audition"
+    ]
+  }
+}

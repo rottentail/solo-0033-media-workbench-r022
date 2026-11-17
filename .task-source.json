@@ -1,0 +1,649 @@
+{
+  "task_source_schema_version": 1,
+  "cc_feedback_profile": "cc-feedback-2611",
+  "project_domain": "游戏、图形与多媒体",
+  "project_subdirection": "音视频处理",
+  "supported_task_types": [
+    "Bugfix",
+    "代码重构",
+    "质量保障"
+  ],
+  "type_coverage": {
+    "功能开发": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "Bugfix": {
+      "status": "supported",
+      "reason": "真实具备不可变计划、逐次片段缓存、租约代次隔离和可恢复发布；具体困难题须通过最窄修复及源码准入，不能以项目画像替代难度证据"
+    },
+    "代码重构": {
+      "status": "supported",
+      "reason": "渲染状态机、POSIX缓存锁、媒体编码和发布拥有真实独立调用边界，可在保持恢复语义前提下重构"
+    },
+    "功能优化": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "依赖升级与迁移": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "质量保障": {
+      "status": "supported",
+      "reason": "HTTP编辑、失效租约接管、缓存损坏、取消和进程退出均有可执行独立验证边界"
+    },
+    "项目维护": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "技术讨论": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "问题排查与诊断": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "部署运维": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    },
+    "泛Agent需求": {
+      "status": "unsupported",
+      "reason": "当前只评估 Bugfix 基线，尚未完成该类型容量审核"
+    }
+  },
+  "prompt_contract": {
+    "schema_version": 1,
+    "mode": "baseline-only",
+    "baseline_tier": "standard",
+    "generation_scope": {
+      "mode": "explicit",
+      "task_types": [
+        "Bugfix"
+      ],
+      "basis": "用户授权扩展原健康基线以增加困难Bugfix容量；不把容量候选自动登记为已准入题"
+    },
+    "minimum_active_prompts": {
+      "Bugfix": 0
+    },
+    "minimum_anchors": {}
+  },
+  "entities": [
+    {
+      "id": "asset",
+      "label": "asset",
+      "relations": [],
+      "invariants": [
+        "素材内容须保持一致"
+      ]
+    },
+    {
+      "id": "project",
+      "label": "project",
+      "relations": [],
+      "invariants": [
+        "修订随片段变更"
+      ]
+    },
+    {
+      "id": "clip",
+      "label": "clip",
+      "relations": [],
+      "invariants": [
+        "片段端点在素材范围内"
+      ]
+    },
+    {
+      "id": "render",
+      "label": "render",
+      "relations": [],
+      "invariants": [
+        "快照保留提交时修订"
+      ]
+    },
+    {
+      "id": "render_job",
+      "label": "持久化渲染任务",
+      "relations": [
+        "render",
+        "clip"
+      ],
+      "invariants": [
+        "计划创建后不随项目编辑变化",
+        "租约所有者和代次同时匹配才可改变运行状态",
+        "取消及完成后不可再次接管"
+      ]
+    },
+    {
+      "id": "segment_checkpoint",
+      "label": "有序片段检查点",
+      "relations": [
+        "render_job"
+      ],
+      "invariants": [
+        "每个剪辑位置保留独立检查点",
+        "缓存复用不合并重复片段",
+        "恢复必须重新校验缓存字节"
+      ]
+    },
+    {
+      "id": "segment_manifest",
+      "label": "片段字节清单",
+      "relations": [
+        "asset",
+        "segment_checkpoint"
+      ],
+      "invariants": [
+        "缓存身份包含源哈希、裁切、增益、音轨和输出版本",
+        "跨进程锁下成对替换字节和清单"
+      ]
+    },
+    {
+      "id": "publication_intent",
+      "label": "产物发布意图",
+      "relations": [
+        "render_job"
+      ],
+      "invariants": [
+        "发布只能由当前租约完成",
+        "失败与取消不自动删除公共目标路径",
+        "进程中断后的自有已链接文件可核验后接管",
+        "损坏的已发布产物需要操作者检查"
+      ]
+    }
+  ],
+  "state_machines": [
+    {
+      "subject": "render_job",
+      "states": [
+        "queued",
+        "running",
+        "completed",
+        "failed",
+        "cancelled"
+      ],
+      "transitions": [
+        "queued->running",
+        "running(expired)->running(new epoch)",
+        "running->completed",
+        "running->failed",
+        "queued->cancelled",
+        "running->cancelled",
+        "failed->queued"
+      ],
+      "invariants": [
+        "代次单调递增",
+        "终态取消不可重试",
+        "失败必须显式重试",
+        "完成记录和目标归属对应"
+      ]
+    },
+    {
+      "subject": "segment_checkpoint",
+      "states": [
+        "pending",
+        "ready"
+      ],
+      "transitions": [
+        "pending->ready",
+        "ready->ready(revalidated or rebuilt)"
+      ],
+      "invariants": [
+        "检查点就绪不意味着缓存字节永远有效",
+        "同缓存可对应多个剪辑位置"
+      ]
+    }
+  ],
+  "capability_families": [
+    {
+      "family": "时间线编辑与修订",
+      "occupied_by": [
+        "timeline.replace",
+        "timeline.snapshot"
+      ],
+      "available": true
+    },
+    {
+      "family": "媒体剪辑实例到缓存字节",
+      "occupied_by": [
+        "planner.cache_key",
+        "SegmentCache.ensure",
+        "encoder.segment"
+      ],
+      "available": true
+    },
+    {
+      "family": "渲染租约与进程接管",
+      "occupied_by": [
+        "jobs.claim",
+        "jobs.require",
+        "worker.run"
+      ],
+      "available": true
+    },
+    {
+      "family": "可恢复产物发布",
+      "occupied_by": [
+        "jobs.artifact",
+        "publication.complete",
+        "publication.cancel"
+      ],
+      "available": true
+    },
+    {
+      "family": "配音避让与整节目有界混音",
+      "occupied_by": [
+        "audio_signal.measure",
+        "ducking.envelope",
+        "mix_render.blocks"
+      ],
+      "available": true
+    },
+    {
+      "family": "离线素材代理与原片回连",
+      "occupied_by": [
+        "media_sources.select",
+        "proxies.create",
+        "relinking.replace"
+      ],
+      "available": true
+    },
+    {
+      "family": "多路重叠转场与音画公共时间轴",
+      "occupied_by": [
+        "transition_plan.schedule",
+        "transition_signal.weights",
+        "transition_render.pictures"
+      ],
+      "available": true
+    },
+    {
+      "family": "代理生命周期和配额回收",
+      "occupied_by": [
+        "proxy_store.pin",
+        "proxy_store.collect",
+        "proxies.create"
+      ],
+      "available": true
+    },
+    {
+      "family": "源位置速度坡度和音画重采样",
+      "occupied_by": [
+        "retime_plan.curve",
+        "retime_signal.audio_blocks",
+        "retime_render.pictures"
+      ],
+      "available": true
+    },
+    {
+      "family": "多人错时区间编辑与选择性撤销",
+      "occupied_by": [
+        "collab_spans.resolve_selection",
+        "collab_merge.apply",
+        "collab_store.commit"
+      ],
+      "available": true
+    },
+    {
+      "family": "多机位独立时钟与整段选镜",
+      "occupied_by": [
+        "sync_clock.position",
+        "multicam_plan.choose",
+        "multicam_render.pictures"
+      ],
+      "available": true
+    },
+    {
+      "family": "一阶空间声场的动态听者朝向",
+      "occupied_by": [
+        "spatial_plan.orientation",
+        "spatial_signal.transform",
+        "spatial_render.write_programme"
+      ],
+      "available": true
+    },
+    {
+      "family": "原片逐词字幕与受限设备整段排版",
+      "occupied_by": [
+        "caption_words.project",
+        "caption_layout.solve",
+        "caption_plan.export"
+      ],
+      "available": true
+    },
+    {
+      "family": "底噪采样与联动频谱修复交付",
+      "occupied_by": [
+        "denoise_plan.profile",
+        "denoise_signal.blocks",
+        "denoise_render.render"
+      ],
+      "available": true
+    },
+    {
+      "family": "测量房间响应与保尾音声学交付",
+      "occupied_by": [
+        "room_plan.create",
+        "room_signal.Matrix",
+        "room_render.render"
+      ],
+      "available": true
+    },
+    {
+      "family": "广播响度母带与真实峰值交付",
+      "occupied_by": [
+        "master_plan.create",
+        "master_signal.master",
+        "master_render.render"
+      ],
+      "available": true
+    },
+    {
+      "family": "宽色域HDR颜色与SDR审片交付",
+      "occupied_by": [
+        "color_plan.create",
+        "color_signal.decode",
+        "color_signal.map_frame",
+        "color_render.render"
+      ],
+      "available": true
+    },
+    {
+      "family": "保音高对白画面对齐",
+      "occupied_by": [
+        "stretch_plan.create",
+        "stretch_signal.blocks",
+        "stretch_render.render"
+      ],
+      "available": true
+    },
+    {
+      "family": "原生采样时钟与带限声音交付",
+      "occupied_by": [
+        "resample_plan.create",
+        "resample_signal.reconstruct",
+        "resample_render.render"
+      ],
+      "available": true
+    },
+    {
+      "family": "原片标记短缺损的双声道波形重建",
+      "occupied_by": [
+        "repair_plan.marks",
+        "repair_signal.restore",
+        "repair_render.render"
+      ],
+      "available": true
+    },
+    {
+      "family": "已知回放参考的现场串音消除",
+      "occupied_by": [
+        "echo_plan.profile",
+        "echo_signal.identify",
+        "echo_render.render"
+      ],
+      "available": true
+    },
+    {
+      "family": "双镜头平面透视拼接",
+      "occupied_by": [
+        "stitch_geometry.calibrate",
+        "stitch_signal.compose",
+        "stitch_render.render"
+      ],
+      "available": true
+    },
+    {
+      "family": "全景视频的球面视角轨迹与普通画面交付",
+      "occupied_by": [
+        "sphere_geometry.orientation",
+        "sphere_geometry.coordinates",
+        "sphere_signal.sample",
+        "sphere_render.render"
+      ],
+      "available": true
+    }
+  ],
+  "extension_seams": [
+    {
+      "id": "timeline-edit",
+      "anchor": "timeline.replace",
+      "entry": "POST /projects/{id}/timeline",
+      "distinct_outcome": "原子批量编辑及修订冲突",
+      "mechanism": "optimistic_revision"
+    },
+    {
+      "id": "media-cache",
+      "anchor": "SegmentCache.ensure",
+      "entry": "POST /render-jobs/{id}/run",
+      "distinct_outcome": "校验复用或重建片段并保持有序实例",
+      "mechanism": "content_addressed_media"
+    },
+    {
+      "id": "worker-resume",
+      "anchor": "worker.run",
+      "entry": "POST /render-jobs/{id}/run",
+      "distinct_outcome": "租约过期后恢复原计划并隔离旧工作进程",
+      "mechanism": "lease_fencing"
+    },
+    {
+      "id": "artifact-publish",
+      "anchor": "publication.complete",
+      "entry": "POST /render-jobs/{id}/run",
+      "distinct_outcome": "中断后的产物归属恢复及并发目标保护",
+      "mechanism": "recoverable_publication"
+    },
+    {
+      "id": "voice-ducking",
+      "anchor": "mix_plan.create",
+      "entry": "POST /mix-plans",
+      "distinct_outcome": "源裁切、增益后活动、交叠曲线和整段响度一致的配音混音",
+      "mechanism": "waveform_envelope_streaming"
+    },
+    {
+      "id": "offline-relink",
+      "anchor": "relinking.replace",
+      "entry": "POST /asset-relinks",
+      "distinct_outcome": "离线预览与批量原片重连在代理准备期间保持身份、用途与位置修订一致",
+      "mechanism": "rendition_identity_relocation"
+    },
+    {
+      "id": "overlap-transitions",
+      "anchor": "transition_plan.create",
+      "entry": "POST /transition-plans",
+      "distinct_outcome": "短中间镜头同时重叠时的线性光与连续采样音画合成",
+      "mechanism": "exact_clock_multiway_transitions"
+    },
+    {
+      "id": "proxy-retention",
+      "anchor": "proxy_store.collect",
+      "entry": "POST /proxy-store/collect",
+      "distinct_outcome": "离线在途预览跨刷新保留精确代理版本，同时进程终止后允许预算回收",
+      "mechanism": "process_owned_rendition_retention"
+    },
+    {
+      "id": "source-speed-ramp",
+      "anchor": "retime_plan.create",
+      "entry": "POST /retime-plans",
+      "distinct_outcome": "按源片位置定义速度变化，积分求逆后各次剪入独立重采样",
+      "mechanism": "source_domain_speed_integral_inverse"
+    },
+    {
+      "id": "collaborative-edit",
+      "anchor": "collab_store.commit",
+      "entry": "POST /projects/{id}/edits",
+      "distinct_outcome": "旧视图所选剪入跨拆分合并、选择性撤销、原回执重放及受限历史容量",
+      "mechanism": "lineage_interval_rebase_persistent_sequence"
+    },
+    {
+      "id": "calibrated-multicam",
+      "anchor": "multicam_plan.create",
+      "entry": "POST /multicam-plans",
+      "distinct_outcome": "非均匀漂移校准、受镜头持续和切换预算约束的全局选镜与主录音同步交付",
+      "mechanism": "piecewise_clock_constrained_sequence_optimization"
+    },
+    {
+      "id": "listener-soundfield",
+      "anchor": "spatial_plan.create",
+      "entry": "POST /spatial-plans",
+      "distinct_outcome": "按冻结姿态的最短球面轨迹旋转AmbiX/FuMa一阶声场并保持声压与方向能量",
+      "mechanism": "quaternion_geodesic_passive_foa_streaming"
+    },
+    {
+      "id": "caption-delivery",
+      "anchor": "caption_plan.create",
+      "entry": "POST /caption-plans",
+      "distinct_outcome": "逐词原片字幕在重复剪入内独立投影并按全片阅读负荷分配设备条数，冻结预览与WebVTT一致",
+      "mechanism": "occurrence_projection_bottleneck_segmentation_frozen_cues"
+    },
+    {
+      "id": "spectral-restoration",
+      "anchor": "denoise_plan.create",
+      "entry": "POST /denoise-plans",
+      "distinct_outcome": "冻结底噪功率后对节目连续降噪，保持声像、裁切增益以及任意中段试听与完整交付逐采样一致",
+      "mechanism": "noise_power_stereo_mask_causal_overlap_add"
+    },
+    {
+      "id": "room-response",
+      "anchor": "room_plan.create",
+      "entry": "POST /room-plans",
+      "distinct_outcome": "有符号立体声传递矩阵、输入时刻空间过渡、完整反射尾音和精确切片",
+      "mechanism": "partitioned_time_varying_matrix_convolution"
+    },
+    {
+      "id": "hdr-sdr-color",
+      "anchor": "color_plan.create",
+      "entry": "POST /color-plans",
+      "distinct_outcome": "逐次完整镜头曝光和保亮度色相的SDR审片，同版中段预览",
+      "mechanism": "absolute_light_scene_exposure_hue_ray_gamut_mapping"
+    },
+    {
+      "id": "dialogue-timing",
+      "anchor": "stretch_plan.create",
+      "entry": "POST /stretch-plans",
+      "distinct_outcome": "逐次对白在原片与画面标记间保音高适配，保留联合声像、瞬态与精确试听",
+      "mechanism": "anchor_constrained_stereo_waveform_overlap_transient_protection"
+    },
+    {
+      "id": "native-rate-delivery",
+      "anchor": "resample_plan.create",
+      "entry": "POST /resample-plans",
+      "distinct_outcome": "混合原生采样率在同一目标时钟带限交付，分数裁切和任意试听保持一致",
+      "mechanism": "rational_clock_windowed_sinc_bounded_reconstruction"
+    },
+    {
+      "id": "impulse-repair",
+      "anchor": "repair_plan.create",
+      "entry": "POST /repair-plans",
+      "distinct_outcome": "原片短缺损按可信两侧上下文修复，任意跨缺损剪入保持波形与完整试听一致",
+      "mechanism": "joint_channel_bidirectional_autoregressive_constrained_interpolation"
+    },
+    {
+      "id": "reference-echo",
+      "anchor": "echo_plan.profile",
+      "entry": "POST /echo-profiles",
+      "distinct_outcome": "独立试播校准短声学路径，冻结后从现场录音中扣除有符号延迟参考而保留叠说",
+      "mechanism": "reference_conditioned_causal_fir_subtraction"
+    },
+    {
+      "id": "planar-panorama",
+      "anchor": "stitch_plan.profile",
+      "entry": "POST /stitch-profiles",
+      "distinct_outcome": "含误标点的平面透视校准与线性光羽化全景交付",
+      "mechanism": "robust_normalized_projective_registration_inverse_linear_light_blending"
+    },
+    {
+      "id": "spherical-view",
+      "anchor": "sphere_plan.create",
+      "entry": "POST /sphere-plans",
+      "distinct_outcome": "等距柱状全景按冻结视角轨迹球面取景，跨经线和极点正确且预览等于整片切片",
+      "mechanism": "quaternion_geodesic_rectilinear_inverse_projection_spherical_topology"
+    }
+  ],
+  "tension_points": [
+    {
+      "workflow_id": "timeline-edit",
+      "description": "批量编辑必须原子生效，同时不能覆盖其他编辑者的新修订",
+      "observable_failure": "失败编辑部分落盘或陈旧编辑覆盖新时间线"
+    },
+    {
+      "workflow_id": "media-render",
+      "description": "重复素材复用编码字节，但各次裁切、增益和位置必须独立",
+      "observable_failure": "成片丢片段、错音量或受后续编辑影响"
+    },
+    {
+      "workflow_id": "resumable-render",
+      "description": "恢复必须复用已完成工作，同时识别损坏缓存和过期所有者，且不能覆盖其他任务产物",
+      "observable_failure": "旧工作进程覆盖新状态，恢复误认损坏片段或清理别人的文件"
+    },
+    {
+      "workflow_id": "voice-ducking",
+      "description": "单次解码和有限内存下还要保留整节目全局峰值关系及已保存避让曲线",
+      "observable_failure": "长节目OOM、块间响度跳变、迟到峰值削顶或静音处错误避让"
+    },
+    {
+      "workflow_id": "offline-relink",
+      "description": "代理更新期间离线编辑需继续，交付仍须核验原片且批量重连不被迟到请求回滚",
+      "observable_failure": "代理被误作原片交付、迟到代理改回旧路径或失败批次留下部分重连"
+    },
+    {
+      "workflow_id": "overlap-transitions",
+      "description": "毫秒级剪辑及多路重叠必须共用连续时间，但视频帧离散且整片缓存会超内存",
+      "observable_failure": "转场暗带、中间镜头消失、音画接点漂移或长片内存随帧数增长"
+    },
+    {
+      "workflow_id": "proxy-retention",
+      "description": "可随时刷新和清理，但慢速预览不能丢失已选版本，退出预览也不能永久占住磁盘",
+      "observable_failure": "在途预览丢文件或旧代理无法回收"
+    },
+    {
+      "workflow_id": "source-speed-ramp",
+      "description": "源位置速度变化与离散输出的映射不能局部线性化；单次解码须支持有界随机采样",
+      "observable_failure": "变速进出点不准、声音阶梯、复用速度串扰或帧位置错误"
+    },
+    {
+      "workflow_id": "collaborative-edit",
+      "description": "长时间线高频短编辑必须保留旧视图和回执语义，同时共享历史以约束磁盘放大",
+      "observable_failure": "错误移动别的剪入、撤销覆盖他人编辑、重发重复执行或历史容量耗尽"
+    },
+    {
+      "workflow_id": "calibrated-multicam",
+      "description": "局部最清晰镜头可能提前耗尽切换预算或无法覆盖结尾，整段选择还须保持各机位独立时钟",
+      "observable_failure": "前段抢切后段错镜、校准间漂移或切镜时跳到错误源画面"
+    },
+    {
+      "workflow_id": "listener-soundfield",
+      "description": "姿态平滑与声场能量不变须同时成立，不能以线性通道交叉淡化换取平滑；分块不应改变全局轨迹",
+      "observable_failure": "转头绕远、声场塌缩、上下左右混淆或块边界朝向回跳"
+    },
+    {
+      "workflow_id": "caption-delivery",
+      "description": "有限条数和两行宽度不能以漏词或拖延到下一镜头满足；局部均衡会牺牲全片最难读字幕，字幕校对和剪辑继续时交付仍需保持已接下的版次",
+      "observable_failure": "重复镜头丢词、裁切错时、前段耗尽条数、后段赶读、预览与交付文本时间漂移"
+    },
+    {
+      "workflow_id": "spectral-restoration",
+      "description": "抑制稳态底噪和保护弱音起音需要不同时间响应；独立声道更强去噪会改变声像，任意片段试听又不能重置过去的滤波状态",
+      "observable_failure": "弱音被吞、底噪颤动、声像游移、边界调制或试听无法代表成片"
+    }
+  ],
+  "prompt_anchors": [],
+  "rolling_shutter_capability": {
+    "modules": [
+      "rolling_geometry",
+      "rolling_plan",
+      "rolling_render"
+    ],
+    "contract": "body-clock row exposure inverse projection; frozen linear-light delivery"
+  },
+  "lens_calibration_capability": {
+    "modules": [
+      "lens_geometry",
+      "lens_plan",
+      "lens_render"
+    ],
+    "contract": "robust sensor-to-ideal radial/decentring calibration and certified inverse pixel support"
+  }
+}

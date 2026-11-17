@@ -1,0 +1,35 @@
+{
+  "language": "Python",
+  "project_shape": "backend",
+  "source_extensions": [
+    ".py"
+  ],
+  "build_command": "python3 -c \"import ast,pathlib; [ast.parse(p.read_text()) for p in pathlib.Path('mediaworkbench').glob('*.py')]\"",
+  "testing": "deferred",
+  "workflow_checks": [
+    {
+      "workflow_id": "timeline-edit",
+      "command": "python3 -m mediaworkbench.check --workflow timeline"
+    },
+    {
+      "workflow_id": "media-render",
+      "command": "python3 -m mediaworkbench.check --workflow render"
+    },
+    {
+      "workflow_id": "resumable-render",
+      "command": "python3 -m mediaworkbench.check --workflow recovery"
+    },
+    {
+      "workflow_id": "voice-ducking",
+      "command": "python3 -m mediaworkbench.check --workflow mix"
+    },
+    {
+      "workflow_id": "offline-relink",
+      "command": "python3 -m mediaworkbench.check --workflow sources"
+    },
+    {
+      "workflow_id": "overlap-transitions",
+      "command": "python3 -m mediaworkbench.check --workflow transitions"
+    }
+  ]
+}

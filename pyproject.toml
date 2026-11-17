@@ -1,0 +1,6 @@
+[project]
+name = "media-workbench"
+version = "0.1.0"
+requires-python = ">=3.10"
+description = "A media timeline processing service"
+dependencies = ["numpy>=2.2,<3", "scipy>=1.15,<2"]
